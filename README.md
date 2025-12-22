@@ -1,4 +1,4 @@
-# Problème d'Ordonnancement de Job Shop - Interface Web
+# Job Shop Problem - Interface Web
 
 **🔗 Demo en ligne** : https://jsp-interface.vercel.app/
 
