@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Shop Scheduler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .job-input::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .job-input::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #1e293b;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loader-ring {
+            animation: pulse-ring 1.2s ease-out infinite;
+        }
+
+        .loader-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        .algo-toggle {
+            transition: all 0.2s ease;
+        }
+
+        .algo-toggle.active {
+            background-color: #1e293b;
+            color: white;
+        }
+
+        .algo-toggle:not(.active) {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-semibold text-gray-800">Job Shop Scheduler</h1>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <select id="presetSelect"
+                        class="appearance-none bg-gray-100 border border-gray-200 text-gray-700 text-sm rounded-lg px-4 py-2 pr-8 cursor-pointer hover:bg-gray-200 transition">
+                        <option value="">Load Preset</option>
+                        <optgroup label="Benchmarks (with BKS)">
+                            <option value="ft06">ft06 - 6x6 (BKS: 55)</option>
+                            <option value="ft10">ft10 - 10x10 (BKS: 930)</option>
+                            <option value="la01">la01 - 10x5 (BKS: 666)</option>
+                            <option value="la02">la02 - 10x5 (BKS: 655)</option>
+                            <option value="la05">la05 - 10x5 (BKS: 593)</option>
+                        </optgroup>
+                        <optgroup label="Random Tests">
+                            <option value="3x3">3x3 Random</option>
+                            <option value="5x5">5x5 Random</option>
+                            <option value="10x10">10x10 Random</option>
+                        </optgroup>
+                    </select>
+                    <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <button id="solveBtn"
+                    class="bg-slate-800 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-slate-700 transition">
+                    Solve
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Job Input Grid -->
+    <section class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-gray-600">Jobs (format: machine,duration machine,duration
+                    ...)</span>
+                <div class="flex gap-2">
+                    <button id="addJob"
+                        class="text-sm text-slate-600 hover:text-slate-800 border border-gray-300 px-3 py-1 rounded-md hover:bg-gray-50 transition">
+                        + Add Job
+                    </button>
+                    <button id="clearJobs"
+                        class="text-sm text-red-600 hover:text-red-700 border border-red-200 px-3 py-1 rounded-md hover:bg-red-50 transition">
+                        Clear
+                    </button>
+                </div>
+            </div>
+            <div id="jobsContainer" class="flex gap-3 overflow-x-auto pb-2 job-input">
+                <!-- Jobs will be added here dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Gantt Chart Area -->
+    <main class="px-6 py-6">
+        <div class="max-w-7xl mx-auto">
+            <!-- Placeholder -->
+            <div id="resultsPlaceholder" class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <div class="text-gray-400 mb-2">
+                    <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <p class="text-gray-500 text-sm">Enter jobs and click Solve to generate Gantt charts</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingContainer" class="hidden bg-white rounded-xl border border-gray-200 p-16 text-center">
+                <div class="relative w-16 h-16 mx-auto mb-6">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-t-slate-700 loader-spin"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-300 loader-ring opacity-50"></div>
+                </div>
+                <p class="text-gray-700 font-medium mb-1">Computing optimal schedules</p>
+                <p class="text-gray-400 text-sm" id="loadingStatus">Running Exact Method...</p>
+            </div>
+
+            <!-- Results Container -->
+            <div id="resultsContainer" class="hidden">
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+                        <!-- Algorithm Toggle -->
+                        <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                            <button id="toggleExact"
+                                class="algo-toggle active text-sm font-medium px-4 py-1.5 rounded-md">
+                                Exact
+                            </button>
+                            <button id="toggleMeta" class="algo-toggle text-sm font-medium px-4 py-1.5 rounded-md">
+                                Metaheuristic
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span id="statusBadge"
+                                class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700"></span>
+                            <div class="text-sm text-gray-600">
+                                Makespan: <span id="makespanValue" class="font-semibold text-gray-800"></span>
+                            </div>
+                            <div id="gapContainer" class="hidden text-sm">
+                                Gap: <span id="gapValue" class="font-semibold"></span>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                CPU: <span id="cpuTimeValue" class="font-semibold text-gray-800"></span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="exportPng"
+                                    class="text-xs text-gray-600 border border-gray-300 px-2 py-1 rounded hover:bg-gray-50 transition">
+                                    Export PNG
+                                </button>
+                                <button id="exportPdf"
+                                    class="text-xs text-gray-600 border border-gray-300 px-2 py-1 rounded hover:bg-gray-50 transition">
+                                    Export PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="ganttWrapper" class="p-4">
+                        <canvas id="ganttChart" class="w-full"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip hidden"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
