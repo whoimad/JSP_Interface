@@ -1,5 +1,7 @@
 # Problème d'Ordonnancement de Job Shop - Interface Web
 
+**🔗 Demo en ligne** : https://jsp-interface.vercel.app/
+
 Interface web de visualisation pour le problème d'ordonnancement de Job Shop (JSP), implémentant un solveur **Exact (CP-SAT)** et une **Métaheuristique (Algorithme Génétique)** avec visualisation interactive par diagramme de Gantt.
 
 ## Fonctionnalités
