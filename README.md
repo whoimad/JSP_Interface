@@ -15,27 +15,27 @@ Interface web de visualisation pour le problème d'ordonnancement de Job Shop (J
 
 ## Ensembles et paramètres
 
-- \( J = \{1,\dots,n\} \) : ensemble des jobs  
-- \( M = \{1,\dots,m\} \) : ensemble des machines  
-- \( O_{j,k} \) : k-ième opération du job j  
-- \( \mu_{j,k} \in M \) : machine requise  
-- \( p_{j,k} > 0 \) : durée de traitement  
+- $ J = \{1,\dots,n\} $ : ensemble des jobs  
+- $ M = \{1,\dots,m\} \) : ensemble des machines  
+- $ O_{j,k} $ : k-ième opération du job j  
+- $ \mu_{j,k} \in M $ : machine requise  
+- $ p_{j,k} > 0 $ : durée de traitement  
 
 
 
 ## Variables de décision
 
-- \( S_{j,k} \ge 0 \) : date de début  
-- \( C_{max} \ge 0 \) : makespan  
-- \( x_{i,h,j,k} \in \{0,1\} \) : variable d’ordonnancement sur une même machine  
+- $ S_{j,k} \ge 0 $ : date de début  
+- $ C_{max} \ge 0 $ : makespan  
+- $ x_{i,h,j,k} \in \{0,1\} $ : variable d’ordonnancement sur une même machine  
 
 
 
 ## Fonction objectif
 
-\[
+$$
 \min C_{max}
-\]
+$$
 
 
 
@@ -43,9 +43,9 @@ Interface web de visualisation pour le problème d'ordonnancement de Job Shop (J
 
 ### 1. Contraintes de précédence (ordre interne aux jobs)
 
-\[
+$$
 S_{j,k+1} \ge S_{j,k} + p_{j,k}
-\]
+$$
 
 Les opérations d’un même job doivent respecter l’ordre imposé.
 
@@ -55,13 +55,13 @@ Les opérations d’un même job doivent respecter l’ordre imposé.
 
 Pour deux opérations exécutées sur une même machine :
 
-\[
+$$
 S_{j,k} \ge S_{i,h} + p_{i,h} - M(1 - x_{i,h,j,k})
-\]
+$$
 
-\[
+$$
 S_{i,h} \ge S_{j,k} + p_{j,k} - M x_{i,h,j,k}
-\]
+$$
 
 Une machine ne peut traiter qu’une seule opération à la fois.
 
@@ -69,17 +69,17 @@ Une machine ne peut traiter qu’une seule opération à la fois.
 
 ### 3. Définition du makespan
 
-\[
+$$
 C_{max} \ge S_{j,m} + p_{j,m}
-\]
+$$
 
 
 
 ## Choix de la constante Big-M
 
-\[
+$$
 M = \sum_{j} \sum_{k} p_{j,k}
-\]
+$$
 
 Cette valeur constitue une borne supérieure triviale du makespan.
 
@@ -91,23 +91,27 @@ La méthode exacte repose sur la programmation par contraintes avec CP-SAT.
 
 Chaque opération est modélisée par :
 
-- une variable de début \( S_{i,j} \),
-- une variable de fin \( E_{i,j} \),
-- une variable d’intervalle \( I_{i,j} \).
+- une variable de début $ S_{i,j} $,
+- une variable de fin $ E_{i,j} $,
+- une variable d’intervalle $ I_{i,j} $.
 
 ## Contraintes
 
 - Précédence :
-E[i,j] <= S[i,j+1]
 
+$$
+E[i,j] <= S[i,j+1]
+$$
 
 - Non-chevauchement machine :
+$$
 NoOverlap(opérations affectées à la machine k)
-
+$$
 
 - Objectif :
+$$
 minimize Cmax
-
+$$
 
 Cette approche garantit l’optimalité pour les instances de petite et moyenne taille.
 
@@ -142,9 +146,9 @@ Le chromosome est transformé en ordonnancement faisable en :
 
 ## Fonction d’évaluation
 
-\[
+$$
 \min C_{max}
-\]
+$$
 
 Le makespan est calculé après décodage complet.
 
