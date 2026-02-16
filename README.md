@@ -10,34 +10,30 @@ Interface web de visualisation pour le problème d'ordonnancement de Job Shop (J
 - **Diagrammes de Gantt Interactifs** : Visualisation Canvas avec info-bulles au survol
 - **Instances de Référence** : Inclut ft06, ft10, la01, la02, la05 de la littérature
 - **Comparaison BKS** : Affiche le gap (%) par rapport aux meilleures solutions connues
+
 ---
+
 # Modélisation Mathématique (Formulation MILP)
 
 ## Ensembles et paramètres
 
-- $ J = \{1,\dots,n\} $ : ensemble des jobs  
-- $ M = \{1,\dots,m\} \) : ensemble des machines  
-- $ O_{j,k} $ : k-ième opération du job j  
-- $ \mu_{j,k} \in M $ : machine requise  
-- $ p_{j,k} > 0 $ : durée de traitement  
-
-
+- $J = \{1,\dots,n\}$ : ensemble des jobs  
+- $M = \{1,\dots,m\}$ : ensemble des machines  
+- $O_{j,k}$ : k-ième opération du job j  
+- $\mu_{j,k} \in M$ : machine requise  
+- $p_{j,k} > 0$ : durée de traitement  
 
 ## Variables de décision
 
-- $ S_{j,k} \ge 0 $ : date de début  
-- $ C_{max} \ge 0 $ : makespan  
-- $ x_{i,h,j,k} \in \{0,1\} $ : variable d’ordonnancement sur une même machine  
-
-
+- $S_{j,k} \ge 0$ : date de début  
+- $C_{max} \ge 0$ : makespan  
+- $x_{i,h,j,k} \in \{0,1\}$ : variable d'ordonnancement sur une même machine  
 
 ## Fonction objectif
 
 $$
 \min C_{max}
 $$
-
-
 
 ## Contraintes
 
@@ -47,9 +43,7 @@ $$
 S_{j,k+1} \ge S_{j,k} + p_{j,k}
 $$
 
-Les opérations d’un même job doivent respecter l’ordre imposé.
-
-
+Les opérations d'un même job doivent respecter l'ordre imposé.
 
 ### 2. Contraintes disjonctives (capacité machine)
 
@@ -63,17 +57,13 @@ $$
 S_{i,h} \ge S_{j,k} + p_{j,k} - M x_{i,h,j,k}
 $$
 
-Une machine ne peut traiter qu’une seule opération à la fois.
-
-
+Une machine ne peut traiter qu'une seule opération à la fois.
 
 ### 3. Définition du makespan
 
 $$
 C_{max} \ge S_{j,m} + p_{j,m}
 $$
-
-
 
 ## Choix de la constante Big-M
 
@@ -91,29 +81,28 @@ La méthode exacte repose sur la programmation par contraintes avec CP-SAT.
 
 Chaque opération est modélisée par :
 
-- une variable de début $ S_{i,j} $,
-- une variable de fin $ E_{i,j} $,
-- une variable d’intervalle $ I_{i,j} $.
+- une variable de début $S_{i,j}$,
+- une variable de fin $E_{i,j}$,
+- une variable d'intervalle $I_{i,j}$.
 
 ## Contraintes
 
 - Précédence :
-
-$$
+```
 E[i,j] <= S[i,j+1]
-$$
+```
 
 - Non-chevauchement machine :
-$$
+```
 NoOverlap(opérations affectées à la machine k)
-$$
+```
 
 - Objectif :
-$$
+```
 minimize Cmax
-$$
+```
 
-Cette approche garantit l’optimalité pour les instances de petite et moyenne taille.
+Cette approche garantit l'optimalité pour les instances de petite et moyenne taille.
 
 ---
 
@@ -125,14 +114,14 @@ Pour les instances de grande taille, une métaheuristique de type Algorithme Gé
 
 Encodage de type job-based representation :
 
-- Longueur du chromosome = nombre total d’opérations
-- Chaque job apparaît autant de fois que son nombre d’opérations
+- Longueur du chromosome = nombre total d'opérations
+- Chaque job apparaît autant de fois que son nombre d'opérations
 
 Exemple :
 
+```
 [1, 2, 3, 1, 3, 2, 1, 2, 3]
-
-
+```
 
 ## Décodage
 
@@ -142,17 +131,13 @@ Le chromosome est transformé en ordonnancement faisable en :
 - respectant la disponibilité des machines,
 - planifiant chaque opération à la date la plus tôt possible.
 
-
-
-## Fonction d’évaluation
+## Fonction d'évaluation
 
 $$
 \min C_{max}
 $$
 
 Le makespan est calculé après décodage complet.
-
-
 
 ## Opérateurs génétiques
 
@@ -161,16 +146,13 @@ Le makespan est calculé après décodage complet.
 - Mutation : échange de deux positions  
 - Élitisme : conservation des 10 % meilleurs individus  
 
-
-
-## Critères d’arrêt
+## Critères d'arrêt
 
 - Nombre maximal de générations atteint  
-- Absence d’amélioration sur un nombre donné d’itérations  
-
-
+- Absence d'amélioration sur un nombre donné d'itérations  
 
 ---
+
 ## Démarrage Rapide
 
 ### Prérequis
